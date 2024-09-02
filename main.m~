@@ -75,7 +75,6 @@ if(mod(point_index,10)==0)
     pose(position_index,1)=robot_position(1,1);
     pose(position_index,2)=robot_position(2,1);
     position_index = position_index+1;
-    
     ref_point = filtered_points;
     play_map(gridMap,point_index);
 end
