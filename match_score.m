@@ -1,0 +1,69 @@
+function[R,T] = match_score(gridMap,lidarPoint,angle_step,...
+                            x_step,y_step,R_init,T_init,...
+                            originX,originY,resolution,gridSizeX,gridSizeY)
+   R = eye(2); % 初始化为2x2单位矩阵
+   T = zeros(2, 1); % 初始化为2x1零向量
+   scoreMatrix=[];
+   num=1;
+   after_trans = transform(lidarPoint,R_init,T_init);
+   % 通过旋转搜索框进行粗匹配
+   for angle =-pi:deg2rad(angle_step):pi
+       for x =-1:x_step:1
+           for y=-1:y_step:1
+               num=num+1;
+               rotate = angle2matrix(angle);
+               trans = [x;y];
+               after_trans = transform(after_trans,rotate,trans);
+               score =score_caluate(after_trans,gridMap,originX,originY,...
+                   resolution,gridSizeX,gridSizeY);
+               scoreMatrix(num,1)=score;
+               scoreMatrix(num,2)=angle;
+               scoreMatrix(num,3)=x;
+               scoreMatrix(num,4)=y;
+           end
+       end
+   end
+   scoreMatrix = sortrows(scoreMatrix, 1);
+   R=angle2matrix(scoreMatrix(1,2));
+   T=[scoreMatrix(3);scoreMatrix(4)];
+end
+
+function R = angle2matrix(theta)
+% 输入：
+%   theta - 旋转角度（以弧度为单位）
+%
+% 输出：
+%   R - 2x2的旋转矩阵    
+R = [cos(theta), -sin(theta); sin(theta), cos(theta)];
+end
+
+function theta = matrix2angle(R)
+
+% 输入：
+%   R - 2x2的旋转矩阵
+%
+% 输出：
+%   theta - 旋转角度（以弧度为单位）
+theta = atan2(R(2,1), R(1,1));
+end
+
+
+function score =score_caluate(lidarPoint,gridMap,originX,...
+originY,resolution,gridSizeX,gridSizeY)
+% 计算雷达点云和栅格地图的匹配评分
+grid=descart2grid(lidarPoint,originX,originY,resolution,gridSizeX,gridSizeY);
+score =0;
+for i=1:size(grid,1)
+    if grid(i,1)<size(gridMap,1)&&grid(i,2)<size(gridMap,2)
+        
+    if gridMap(grid(i,1),grid(i,2))==0
+        score = score+1;
+    end
+    
+    end
+end
+
+end
+
+
+

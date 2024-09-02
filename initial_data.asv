@@ -1,0 +1,111 @@
+
+clear;
+clc;
+
+%% 重要参数调节
+voxel_size = 0.05; % 体素滤波器
+max_iterations = 1000; % 前端最大迭代次数
+tolerance = 0.001; % 迭代停止误差
+multi_resolution = 0.05;
+
+figure;
+h = scatter(NaN, NaN, 'filled');  % 播放参数
+bag=rosbag("test_room3.bag");
+geometry_message = select(bag,'MessageType','sensor_msgs/LaserScan');
+laser_data=readMessages(geometry_message); %% 获得雷达数据
+
+%% 姿态坐标
+position_x = 0.0;
+position_y = 0.0;
+position_angle = 0.0;
+position_index = 1;
+
+num =5;
+
+
+R_init = eye(3); % 初始化为3x3单位矩阵
+T_init = zeros(3, 1); % 初始化为3x1零向量
+
+%% 前端匹配
+% 输出所有的点云帧
+for point_index = 1:100%length(laser_data)
+%disp(point_index); %点云帧的序号
+first_data = laser_data{point_index};
+num_points = length(first_data.Ranges);
+% 计算每个雷达点的坐标
+for i = 1:num_points
+    angle = first_data(1).AngleMin + (i - 1) * first_data(1).AngleIncrement;
+
+    if (first_data(1).Ranges(i) * cos(angle) ~= inf && first_data(1).Ranges(i) * cos(angle)~= -inf) ...
+             && (first_data(1).Ranges(i) * sin(angle)~= inf ...
+             && first_data(1).Ranges(i) * sin(angle)~= -inf )...
+             
+         if point_index == 1
+             ref_x(i)=first_data(1).Ranges(i) * cos(angle);
+             ref_y(i)=first_data(1).Ranges(i) * sin(angle);
+    end
+         
+    x_coords(i) = first_data(1).Ranges(i) * cos(angle);
+    y_coords(i) = first_data(1).Ranges(i) * sin(angle);
+    end
+end
+
+% z轴数据定义为0
+z=zeros(1,length(x_coords));
+ref_z=zeros(1,length(ref_x));
+laser_point =[x_coords;y_coords;z];
+
+laser_point = laser_point';
+
+
+if point_index==1
+    ref_point = [ref_x;ref_y;ref_z];
+    ref_point = ref_point';
+    ref_point = voxel_filter(ref_point, voxel_size);
+    map = ref_point;
+end
+
+% 删除离群点
+filtered_points = voxel_filter(laser_point, voxel_size);
+
+% 隔十帧作一次关键帧提取
+
+if(mod(point_index,5)==0)
+     [R, T,aligned_points] = icp(filtered_points, ref_point,R_init,T_init, max_iterations, tolerance);
+%    [R,T] = multi_icp(filtered_points, ref_point, max_iterations, tolerance,multi_resolution);    
+
+    % 将第一帧作为初始地图，开始叠加
+     map = map_stitch(R,T',filtered_points,map);
+    
+%     ref_point = filtered_points;
+%     position_x = position_x+T(1);
+%     position_y = position_y+T(2);
+%     
+%     postion(position_index,:) =[position_x position_y 0];
+%     position_index =position_index+1;
+    
+   
+    
+%     play_video(h,postion);
+    
+end
+
+%play_video(h,filtered_points);
+end
+
+plot(map(:,1),map(:,2),'r.')
+
+
+
+
+%% 播放功能
+function play_video(h,filtered_points)
+set(h, 'XData', filtered_points(:,1), 'YData', filtered_points(:,2));
+% 刷新图形
+drawnow;    
+% 可选：控制播放速度
+pause(0.05);  % 暂停0.05秒
+end
+
+
+
