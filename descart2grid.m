@@ -1,6 +1,6 @@
 function grid= descart2grid(lidarPoint,originX,originY,resolution,...
                            gridSizeX,gridSizeY)
-grid=[];
+ grid=[];
 % 转换雷达坐标转化为栅格坐标
 for i = 1:size(lidarPoint, 1)
     

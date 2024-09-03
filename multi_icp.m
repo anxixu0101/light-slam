@@ -15,6 +15,6 @@ for resoluation=voxel_size:-0.05:0.05
 end
 R = R_init;
 T = T_init;
-R
+
 
 end

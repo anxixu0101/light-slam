@@ -7,7 +7,7 @@ function[R,T] = match_score(gridMap,lidarPoint,angle_step,...
    num=1;
    after_trans = transform(lidarPoint,R_init,T_init);
    % 通过旋转搜索框进行粗匹配
-   for angle =-pi/2:deg2rad(angle_step):pi/2
+   for angle =-pi:deg2rad(angle_step):pi
        for x =-1:x_step:1
            for y=-1:y_step:1
                num=num+1;
@@ -26,8 +26,7 @@ function[R,T] = match_score(gridMap,lidarPoint,angle_step,...
    scoreMatrix = sortrows(scoreMatrix, 1,'descend');
    R=angle2matrix(scoreMatrix(1,2));
    T=[scoreMatrix(1,3);scoreMatrix(1,4)];
-   R
-   T
+
 end
 
 function R = angle2matrix(theta)
