@@ -3,14 +3,19 @@
 
 ### The purpose
 
-**In order to allow people who want to learn SLAM to complete the basic theory of SLAM without relying on ros, I have completed the theory required for SLAM in the form of MATLAB**
-
-
-### The theory
-
-**In my opinion, SLAM is divided into three types: fusion algorithm, matching algorithm and optimization algorithm required by the backend. In the front end, it has always puzzled me how to achieve accurate odometry calculations without other sensors but radar. Since the function of the ICP algorithm is a concave function, it is inevitable to fall into a local optimum. To this end, I optimized the ICP to try to find the global optimal solution to complete accurate odometer calculations.**
+**In order to allow people who want to learn SLAM to complete the basic theory of SLAM without relying on ros,and no grid map.Only use point**
 
 
 ### How to use
 
 **No need to use any toolbox, just move the program directly into MATLAB and run it**
+
+### Renderings
+
+![image](https://github.com/anxixu0101/light-carto-slam/blob/master/IMG/output.gif)
+
+
+### Question
+
+**If you use MATLAB to form a raster map, it will be much faster. If you use MATLAB to directly form a point cloud map, since multiple points must be matched each time, if you continue to use multi-resolution ICP, the efficiency will be much slower. Therefore, the SLAM effect of the ICP tested this time was not as good as expected.**
+
